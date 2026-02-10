@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full background in theme color for splash screen -->
+  <rect width="512" height="512" fill="#2a8a6a"/>
+  <!-- Snake emoji centered in safe zone (70-80% center area) -->
+  <text x="256" y="340" text-anchor="middle" font-size="280">🐍</text>
+</svg>

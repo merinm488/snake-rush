@@ -3,7 +3,7 @@
  * Provides offline functionality and caching
  */
 
-const CACHE_NAME = 'snake-rush-v8';
+const CACHE_NAME = 'snake-rush-v9';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -21,9 +21,12 @@ const urlsToCache = [
   '/icons/icon-144.png',
   '/icons/icon-152.png',
   '/icons/icon-192.png',
+  '/icons/icon-192-maskable.png',
   '/icons/icon-384.png',
   '/icons/icon-512.png',
+  '/icons/icon-512-maskable.png',
   '/icons/icon-1024.png',
+  '/icons/icon-1024-maskable.png',
   '/icons/apple-touch-icon.png'
 ];
 
