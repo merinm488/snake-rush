@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <clipPath id="circle192">
+      <circle cx="96" cy="96" r="88"/>
+    </clipPath>
+  </defs>
+  <rect width="192" height="192" fill="#2a8a6a" rx="24"/>
+  <circle cx="96" cy="96" r="88" fill="#1a7a5a"/>
+  <text x="96" y="130" text-anchor="middle" font-size="110" clip-path="url(#circle192)">🐍</text>
+</svg>

@@ -1,0 +1,177 @@
+/* Theme: Classic - Very light mint */
+body.theme-classic {
+    --bg-primary: #d8f4e8;
+    --bg-secondary: #e8fcf4;
+    --game-bg: #c8ecdc;
+    --text-primary: #1a4a3a;
+    --text-secondary: #4a7a6a;
+    --accent: #2a8a6a;
+    --border: #98d8b8;
+    --shadow: rgba(42, 138, 106, 0.2);
+    --snake-head: #2a9a7a;
+    --snake-body: #3aaa8a;
+    --snake-pattern: #1a8a6a;
+}
+
+/* Theme: Neon - Soft pastel purple */
+body.theme-neon {
+    --bg-primary: #e8d8f8;
+    --bg-secondary: #f8ecff;
+    --game-bg: #d8c8ec;
+    --text-primary: #4a3a6a;
+    --text-secondary: #6a5a8a;
+    --accent: #9955dd;
+    --border: #c8b8e8;
+    --shadow: rgba(153, 85, 221, 0.25);
+    --snake-head: #9955dd;
+    --snake-body: #aa66ee;
+    --snake-pattern: #8844cc;
+}
+
+body.theme-neon .game-title {
+    text-shadow:
+        0 0 10px #9955dd,
+        0 0 20px #9955dd,
+        0 0 40px #9955dd;
+}
+
+body.theme-neon #gameCanvas {
+    box-shadow:
+        0 0 20px rgba(153, 85, 221, 0.4),
+        0 0 40px rgba(153, 85, 221, 0.2),
+        inset 0 0 20px rgba(153, 85, 221, 0.1);
+}
+
+/* Theme: Ocean - Pale sky blue */
+body.theme-ocean {
+    --bg-primary: #d8f4fc;
+    --bg-secondary: #ecfcff;
+    --game-bg: #c8e8f4;
+    --text-primary: #1a4a6a;
+    --text-secondary: #4a7a9a;
+    --accent: #3a8acc;
+    --border: #a8d8f0;
+    --shadow: rgba(58, 138, 204, 0.2);
+    --snake-head: #3a99dd;
+    --snake-body: #4aa9ee;
+    --snake-pattern: #2a88cc;
+}
+
+/* Theme: Forest - Light fresh green */
+body.theme-forest {
+    --bg-primary: #d8f4d8;
+    --bg-secondary: #ecfcec;
+    --game-bg: #c8ecc8;
+    --text-primary: #1a4a2a;
+    --text-secondary: #4a7a4a;
+    --accent: #4a9a5a;
+    --border: #a8e0b8;
+    --shadow: rgba(74, 154, 90, 0.2);
+    --snake-head: #4aaa6a;
+    --snake-body: #5aba7a;
+    --snake-pattern: #3a9a5a;
+}
+
+/* Theme: Berry - Soft pink/rose */
+body.theme-berry {
+    --bg-primary: #f8d8e8;
+    --bg-secondary: #ffecf8;
+    --game-bg: #f0c8dc;
+    --text-primary: #5a2a4a;
+    --text-secondary: #8a5a7a;
+    --accent: #cc5599;
+    --border: #f0b8d8;
+    --shadow: rgba(204, 85, 153, 0.25);
+    --snake-head: #cc5599;
+    --snake-body: #dd66aa;
+    --snake-pattern: #bb4488;
+}
+
+/* Theme: Sunset - Pale peach/coral */
+body.theme-sunset {
+    --bg-primary: #fce8d8;
+    --bg-secondary: #fff4ec;
+    --game-bg: #f0d8c8;
+    --text-primary: #6a4a3a;
+    --text-secondary: #8a6a5a;
+    --accent: #dd7755;
+    --border: #f0d0b8;
+    --shadow: rgba(221, 119, 85, 0.25);
+    --snake-head: #dd7755;
+    --snake-body: #ee8866;
+    --snake-pattern: #cc6644;
+}
+
+/* Theme: Light - Nearly white */
+body.theme-light {
+    --bg-primary: #fafaf8;
+    --bg-secondary: #ffffff;
+    --game-bg: #f0f0ec;
+    --text-primary: #4a4a4a;
+    --text-secondary: #7a7a7a;
+    --accent: #77bb77;
+    --border: #e0e0d8;
+    --shadow: rgba(0, 0, 0, 0.08);
+    --snake-head: #77bb77;
+    --snake-body: #88cc88;
+    --snake-pattern: #66aa66;
+}
+
+body.theme-light #gameCanvas {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme: Dark - Black and white only */
+body.theme-dark {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2a2a2a;
+    --game-bg: #0a0a0a;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --accent: #ffffff;
+    --border: #4a4a4a;
+    --shadow: rgba(255, 255, 255, 0.15);
+    --snake-head: #ffffff;
+    --snake-body: #cccccc;
+    --snake-pattern: #999999;
+}
+
+body.theme-dark .game-title {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+body.theme-dark .btn-primary {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+body.theme-dark .btn-secondary {
+    border: 2px solid #ffffff;
+    color: #ffffff;
+}
+
+body.theme-dark #gameCanvas {
+    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+    border: 2px solid #3a3a3a;
+}
+
+/* Smooth theme transitions */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Default theme - Classic */
+body {
+    --bg-primary: #d8f4e8;
+    --bg-secondary: #e8fcf4;
+    --game-bg: #c8ecdc;
+    --text-primary: #1a4a3a;
+    --text-secondary: #4a7a6a;
+    --accent: #2a8a6a;
+    --border: #98d8b8;
+    --shadow: rgba(42, 138, 106, 0.2);
+    --snake-head: #2a9a7a;
+    --snake-body: #3aaa8a;
+    --snake-pattern: #1a8a6a;
+}
