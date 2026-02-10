@@ -4,7 +4,7 @@
   "description": "A classic snake game with themes, sounds, and responsive design",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#1a1a1a",
+  "background_color": "#2a8a6a",
   "theme_color": "#2a8a6a",
   "orientation": "any",
   "scope": "./",
