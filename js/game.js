@@ -38,12 +38,13 @@ const Game = (function() {
 
     // Difficulty settings (milliseconds per frame)
     const DIFFICULTY_SPEEDS = {
-        easy: 170,
-        medium: 100,
-        hard: 60
+        easy: 280,
+        medium: 220,
+        hard: 170
     };
 
-    const tileCount = 20;
+    let tileCountX = 20;
+    let tileCountY = 20;
 
     // Level definitions
     const LEVELS = {
@@ -188,9 +189,14 @@ const Game = (function() {
         level = levelNum;
         const levelData = LEVELS[level] || LEVELS[1];
 
+        // Force canvas to resize first, then get grid dimensions
+        Renderer.resizeCanvas();
+        tileCountX = Renderer.getTileCountX ? Renderer.getTileCountX() : 20;
+        tileCountY = Renderer.getTileCountY ? Renderer.getTileCountY() : 20;
+
         // Initialize snake in the middle
-        const startX = Math.floor(tileCount / 2);
-        const startY = Math.floor(tileCount / 2);
+        const startX = Math.floor(tileCountX / 2);
+        const startY = Math.floor(tileCountY / 2);
 
         snake = [
             { x: startX, y: startY },
@@ -230,7 +236,8 @@ const Game = (function() {
 
         // Update displays
         if (onScoreUpdate) onScoreUpdate(score);
-        if (onLevelUpdate) onLevelUpdate(level, cumulativeTarget);
+        // Only update level display in levels mode
+        if (onLevelUpdate && gameMode === 'levels') onLevelUpdate(level, cumulativeTarget);
     }
 
     /**
@@ -263,8 +270,8 @@ const Game = (function() {
 
         while (!validPosition && attempts < 100) {
             food = {
-                x: Math.floor(Math.random() * tileCount),
-                y: Math.floor(Math.random() * tileCount)
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * tileCountY)
             };
 
             validPosition = !isPositionOccupied(food.x, food.y);
@@ -281,8 +288,8 @@ const Game = (function() {
 
         while (!validPosition && attempts < 100) {
             goldenFruit = {
-                x: Math.floor(Math.random() * tileCount),
-                y: Math.floor(Math.random() * tileCount)
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * tileCountY)
             };
 
             // Don't spawn too close to regular food
@@ -399,7 +406,7 @@ const Game = (function() {
         head.y += direction.y;
 
         // Check wall collision
-        if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
             handleGameOver();
             return;
         }

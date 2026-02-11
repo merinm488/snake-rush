@@ -60,13 +60,6 @@ const UISystem = (function() {
         bonusSound: document.getElementById('bonusSoundToggle')
     };
 
-    // D-pad elements
-    const dPad = document.getElementById('dPad');
-    const dPadToggleBtn = document.getElementById('dPadToggleBtn');
-
-    // D-pad visibility setting
-    let dPadVisible = true;
-
     // Display elements
     const displays = {
         currentScore: document.getElementById('currentScore'),
@@ -156,8 +149,9 @@ const UISystem = (function() {
     /**
      * Update level/target display visibility based on game mode
      */
-    function updateGameHeaderForMode() {
-        if (selectedMode === 'endless') {
+    function updateGameHeaderForMode(mode) {
+        const gameMode = mode || selectedMode;
+        if (gameMode === 'endless') {
             displays.levelDisplay.classList.add('hidden');
             displays.targetDisplay.classList.add('hidden');
         } else {
@@ -174,27 +168,6 @@ const UISystem = (function() {
     }
 
     /**
-     * Update D-pad visibility based on setting and device type
-     */
-    function updateDPadVisibility() {
-        const isMobile = window.innerWidth <= 768;
-
-        // Update D-pad visibility
-        if (isMobile && dPadVisible) {
-            dPad.classList.add('visible');
-            document.body.classList.add('d-pad-visible');
-        } else {
-            dPad.classList.remove('visible');
-            document.body.classList.remove('d-pad-visible');
-        }
-
-        // Update toggle button icon
-        if (dPadToggleBtn) {
-            dPadToggleBtn.textContent = dPadVisible ? '👆' : '🕹️';
-        }
-    }
-
-    /**
      * Load current settings into UI controls
      */
     function loadSettingsToUI() {
@@ -207,7 +180,7 @@ const UISystem = (function() {
         settingsControls.difficulty.value = settings.difficulty;
 
         updateLevelsButtonState();
-        updateGameHeaderForMode();
+        updateGameHeaderForMode(selectedMode);
 
         // Update fruit icon to match current setting
         const fruitEmojis = {
@@ -228,11 +201,6 @@ const UISystem = (function() {
         settingsControls.gameOverSound.checked = soundSettings.gameOver;
         settingsControls.buttonSound.checked = soundSettings.buttons;
         settingsControls.bonusSound.checked = soundSettings.bonus;
-
-        // D-pad setting
-        const savedDPadSetting = localStorage.getItem('snakeRushDPadVisible');
-        dPadVisible = savedDPadSetting === null ? true : savedDPadSetting === 'true';
-        updateDPadVisibility();
     }
 
     /**
@@ -295,7 +263,7 @@ const UISystem = (function() {
             selectedMode = e.target.value;
             localStorage.setItem('snakeRushGameMode', selectedMode);
             updateLevelsButtonState();
-            updateGameHeaderForMode();
+            updateGameHeaderForMode(selectedMode);
             AudioSystem.playClick();
         });
         settingsControls.theme.addEventListener('change', (e) => {
@@ -358,15 +326,6 @@ const UISystem = (function() {
             AudioSystem.playClick();
         });
 
-        // D-pad toggle button
-        if (dPadToggleBtn) {
-            dPadToggleBtn.addEventListener('click', () => {
-                dPadVisible = !dPadVisible;
-                localStorage.setItem('snakeRushDPadVisible', dPadVisible.toString());
-                updateDPadVisibility();
-            });
-        }
-
         // Close modals when clicking outside
         Object.keys(modals).forEach(key => {
             modals[key].addEventListener('click', (e) => {
@@ -382,11 +341,6 @@ const UISystem = (function() {
 
         // Keyboard shortcuts
         document.addEventListener('keydown', handleGlobalKeydown);
-
-        // Window resize - update D-pad visibility on orientation change
-        window.addEventListener('resize', () => {
-            updateDPadVisibility();
-        });
     }
 
     /**
@@ -426,10 +380,6 @@ const UISystem = (function() {
         }
 
         AudioSystem.playClick();
-
-        if (screenName === 'gameScreen') {
-            setTimeout(() => Renderer.resizeCanvas(), 50);
-        }
     }
 
     /**
@@ -520,7 +470,7 @@ const UISystem = (function() {
         }
 
         currentGameLevel = levelNum;
-        updateGameHeaderForMode();
+        updateGameHeaderForMode(mode);
         showScreen('gameScreen');
 
         Game.start(

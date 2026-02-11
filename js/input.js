@@ -42,9 +42,6 @@ const InputSystem = (function() {
         document.addEventListener('touchstart', handleTouchStart, { passive: false });
         document.addEventListener('touchend', handleTouchEnd, { passive: false });
         document.addEventListener('touchmove', handleTouchMove, { passive: false });
-
-        // D-pad controls
-        initDPad();
     }
 
     /**
@@ -146,41 +143,6 @@ const InputSystem = (function() {
     }
 
     /**
-     * Initialize D-pad button controls
-     */
-    function initDPad() {
-        const dPadButtons = document.querySelectorAll('.d-pad-btn');
-
-        dPadButtons.forEach(button => {
-            // Handle both touch and mouse events
-            const handlePress = (e) => {
-                e.preventDefault();
-                const direction = button.getAttribute('data-direction');
-
-                switch(direction) {
-                    case 'up':
-                        changeDirection(DIRECTIONS.UP);
-                        break;
-                    case 'down':
-                        changeDirection(DIRECTIONS.DOWN);
-                        break;
-                    case 'left':
-                        changeDirection(DIRECTIONS.LEFT);
-                        break;
-                    case 'right':
-                        changeDirection(DIRECTIONS.RIGHT);
-                        break;
-                }
-
-                handleFirstInput();
-            };
-
-            button.addEventListener('touchstart', handlePress, { passive: false });
-            button.addEventListener('mousedown', handlePress);
-        });
-    }
-
-    /**
      * Handle first input (to start game movement)
      */
     function handleFirstInput() {
@@ -242,11 +204,6 @@ const InputSystem = (function() {
         document.removeEventListener('touchstart', handleTouchStart);
         document.removeEventListener('touchend', handleTouchEnd);
         document.removeEventListener('touchmove', handleTouchMove);
-
-        const dPadButtons = document.querySelectorAll('.d-pad-btn');
-        dPadButtons.forEach(button => {
-            button.replaceWith(button.cloneNode(true));
-        });
     }
 
     return {

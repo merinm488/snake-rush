@@ -9,7 +9,9 @@ const Renderer = (function() {
 
     // Game configuration
     let gridSize = 20;
-    let tileCount = 20;
+    let tileCountX = 20;
+    let tileCountY = 20;
+    let tileCount = 20; // Legacy, for backward compatibility
 
     // Colors (read from CSS variables)
     let colors = {};
@@ -64,18 +66,38 @@ const Renderer = (function() {
         const container = document.querySelector('.game-container');
         if (!container) return;
 
-        const maxWidth = Math.min(window.innerWidth - 32, 600);
-        const maxHeight = window.innerHeight - 200;
+        const isMobile = window.innerWidth <= 768;
 
-        // Calculate size based on grid
-        const size = Math.min(maxWidth, maxHeight);
+        if (isMobile) {
+            // Mobile: Use rectangular canvas to extend to bottom
+            const maxWidth = Math.min(window.innerWidth - 16, 600);
 
-        // Set canvas size
-        canvas.width = size;
-        canvas.height = size;
+            // Calculate grid size first (keep cells square based on width)
+            gridSize = Math.floor(maxWidth / tileCountX);
 
-        // Calculate grid size
-        gridSize = Math.floor(size / tileCount);
+            // Calculate available height (account for header and minimal padding)
+            const header = document.querySelector('.game-header');
+            const headerHeight = header ? header.offsetHeight : 60;
+            const availableHeight = window.innerHeight - headerHeight - 10;
+
+            // Calculate how many complete rows fit
+            tileCountY = Math.floor(availableHeight / gridSize);
+
+            // Set canvas to exact multiple of gridSize (no partial rows)
+            canvas.width = maxWidth;
+            canvas.height = tileCountY * gridSize;
+        } else {
+            // Desktop: Keep original square canvas behavior
+            const maxWidth = Math.min(window.innerWidth - 32, 600);
+            const maxHeight = window.innerHeight - 200;
+            const size = Math.min(maxWidth, maxHeight);
+
+            canvas.width = size;
+            canvas.height = size;
+
+            gridSize = Math.floor(size / tileCountX);
+            tileCountY = tileCountX; // Square grid on desktop
+        }
     }
 
     /**
@@ -85,20 +107,29 @@ const Renderer = (function() {
         ctx.fillStyle = colors.gameBg || '#1a3050';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Draw dark boundary line around the game board
+        ctx.strokeStyle = '#000000';
+        ctx.globalAlpha = 0.6;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1;
+
         // Draw visible grid pattern
         const gridColor = colors.border || '#4a5a6a';
         ctx.strokeStyle = gridColor;
         ctx.globalAlpha = 0.3;
         ctx.lineWidth = 1;
 
-        for (let i = 0; i <= tileCount; i++) {
-            // Vertical lines
+        // Vertical lines (columns)
+        for (let i = 0; i <= tileCountX; i++) {
             ctx.beginPath();
             ctx.moveTo(i * gridSize, 0);
             ctx.lineTo(i * gridSize, canvas.height);
             ctx.stroke();
+        }
 
-            // Horizontal lines
+        // Horizontal lines (rows)
+        for (let i = 0; i <= tileCountY; i++) {
             ctx.beginPath();
             ctx.moveTo(0, i * gridSize);
             ctx.lineTo(canvas.width, i * gridSize);
@@ -213,7 +244,6 @@ const Renderer = (function() {
      * Draw snake body as a continuous flowing shape
      */
     function drawContinuousBody(snake) {
-        console.log('🐍 Drawing NEW continuous snake body, length:', snake.length);
         const totalLength = snake.length;
 
         // Get points for the spine of the snake
@@ -570,7 +600,9 @@ const Renderer = (function() {
         updateColors,
         render,
         triggerEatAnimation,
-        getTileCount: () => tileCount,
+        getTileCount: () => tileCountY,
+        getTileCountX: () => tileCountX,
+        getTileCountY: () => tileCountY,
         resizeCanvas
     };
 })();
