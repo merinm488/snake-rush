@@ -17,7 +17,7 @@ const AudioSystem = (function() {
         bonus: true
     };
 
-    let bgmVolume = 0.3;
+    let bgmVolume = 0.6;
     let bgmOscillators = [];
     let bgmGainNode = null;
     let isBgmPlaying = false;

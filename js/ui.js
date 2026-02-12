@@ -53,11 +53,8 @@ const UISystem = (function() {
         difficulty: document.getElementById('difficultySelect'),
         masterSound: document.getElementById('masterSoundToggle'),
         bgmSound: document.getElementById('bgmSoundToggle'),
-        bgmVolume: document.getElementById('bgmVolume'),
-        eatSound: document.getElementById('eatSoundToggle'),
-        gameOverSound: document.getElementById('gameOverSoundToggle'),
-        buttonSound: document.getElementById('buttonSoundToggle'),
-        bonusSound: document.getElementById('bonusSoundToggle')
+        groupLevels: document.getElementById('settingGroupLevels'),
+        groupFruit: document.getElementById('settingGroupFruit')
     };
 
     // Display elements
@@ -175,10 +172,24 @@ const UISystem = (function() {
     }
 
     /**
-     * Update levels button state based on game mode
+     * Update settings visibility based on game mode
      */
-    function updateLevelsButtonState() {
-        buttons.levels.disabled = (selectedMode === 'endless' || selectedMode === 'time');
+    function updateSettingsForMode() {
+        const mode = selectedMode;
+
+        // Levels button: Only show for Levels mode
+        if (mode === 'levels') {
+            settingsControls.groupLevels.classList.remove('hidden');
+        } else {
+            settingsControls.groupLevels.classList.add('hidden');
+        }
+
+        // Fruit Type: Show for Endless and Levels, hide for Time mode
+        if (mode === 'time') {
+            settingsControls.groupFruit.classList.add('hidden');
+        } else {
+            settingsControls.groupFruit.classList.remove('hidden');
+        }
     }
 
     /**
@@ -193,7 +204,7 @@ const UISystem = (function() {
         settingsControls.fruit.value = settings.fruitType;
         settingsControls.difficulty.value = settings.difficulty;
 
-        updateLevelsButtonState();
+        updateSettingsForMode();
         updateGameHeaderForMode(selectedMode);
 
         // Update fruit icon to match current setting
@@ -210,11 +221,6 @@ const UISystem = (function() {
         // Sound settings
         settingsControls.masterSound.checked = soundSettings.master;
         settingsControls.bgmSound.checked = soundSettings.bgm;
-        settingsControls.bgmVolume.value = soundSettings.bgmVolume * 100;
-        settingsControls.eatSound.checked = soundSettings.eat;
-        settingsControls.gameOverSound.checked = soundSettings.gameOver;
-        settingsControls.buttonSound.checked = soundSettings.buttons;
-        settingsControls.bonusSound.checked = soundSettings.bonus;
     }
 
     /**
@@ -276,7 +282,7 @@ const UISystem = (function() {
         settingsControls.mode.addEventListener('change', (e) => {
             selectedMode = e.target.value;
             localStorage.setItem('snakeRushGameMode', selectedMode);
-            updateLevelsButtonState();
+            updateSettingsForMode();
             updateGameHeaderForMode(selectedMode);
             AudioSystem.playClick();
         });
@@ -313,30 +319,6 @@ const UISystem = (function() {
 
         settingsControls.bgmSound.addEventListener('change', (e) => {
             AudioSystem.setSound('bgm', e.target.checked);
-            AudioSystem.playClick();
-        });
-
-        settingsControls.bgmVolume.addEventListener('input', (e) => {
-            AudioSystem.setSound('volume', e.target.value / 100);
-        });
-
-        settingsControls.eatSound.addEventListener('change', (e) => {
-            AudioSystem.setSound('eat', e.target.checked);
-            AudioSystem.playClick();
-        });
-
-        settingsControls.gameOverSound.addEventListener('change', (e) => {
-            AudioSystem.setSound('gameOver', e.target.checked);
-            AudioSystem.playClick();
-        });
-
-        settingsControls.buttonSound.addEventListener('change', (e) => {
-            AudioSystem.setSound('buttons', e.target.checked);
-            AudioSystem.playClick();
-        });
-
-        settingsControls.bonusSound.addEventListener('change', (e) => {
-            AudioSystem.setSound('bonus', e.target.checked);
             AudioSystem.playClick();
         });
 
@@ -403,6 +385,10 @@ const UISystem = (function() {
         AudioSystem.playClick();
         if (modals[modalName]) {
             modals[modalName].classList.add('active');
+        }
+        // Update settings visibility when opening settings modal
+        if (modalName === 'settings') {
+            updateSettingsForMode();
         }
     }
 

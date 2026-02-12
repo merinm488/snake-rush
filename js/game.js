@@ -320,7 +320,7 @@ const Game = (function() {
     /**
      * Start golden fruit spawner
      * In debug mode: spawns every 2 seconds (for testing)
-     * Normal mode: 5% chance every 3 seconds
+     * Normal mode: 10% chance every 3 seconds
      */
     function startGoldenFruitSpawner() {
         if (goldenFruitTimer) clearInterval(goldenFruitTimer);
@@ -338,13 +338,13 @@ const Game = (function() {
                     goldenFruit = null;
                 }, 8000);
             } else {
-                // Normal: 5% chance to spawn
-                if (Math.random() < 0.05) {
+                // Normal: 10% chance to spawn
+                if (Math.random() < 0.10) {
                     placeGoldenFruit();
-                    // Remove after 5 seconds
+                    // Remove after 6 seconds (gave more time to reach it)
                     setTimeout(() => {
                         goldenFruit = null;
-                    }, 5000);
+                    }, 6000);
                 }
             }
         }, interval);
@@ -386,6 +386,11 @@ const Game = (function() {
 
             validPosition = !isPositionOccupied(goldenFruit.x, goldenFruit.y) && distFromFood >= 3;
             attempts++;
+        }
+
+        // Create spawn pulse effect
+        if (goldenFruit) {
+            createSpawnEffect(goldenFruit.x, goldenFruit.y, 'golden');
         }
     }
 
@@ -595,6 +600,84 @@ const Game = (function() {
     }
 
     /**
+     * Create spawn effect at grid position
+     */
+    function createSpawnEffect(gridX, gridY, type = 'golden') {
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) return;
+
+        const canvasRect = canvas.getBoundingClientRect();
+        const cellWidth = canvasRect.width / tileCountX;
+        const cellHeight = canvasRect.height / tileCountY;
+
+        // Calculate position in pixels relative to canvas
+        const x = gridX * cellWidth + cellWidth / 2;
+        const y = gridY * cellHeight + cellHeight / 2;
+
+        // Create spawn effect element
+        const spawnEffect = document.createElement('div');
+        spawnEffect.className = `golden-spawn`;
+        spawnEffect.style.left = `${x}px`;
+        spawnEffect.style.top = `${y}px`;
+        spawnEffect.style.width = `${cellWidth * 2}px`;
+        spawnEffect.style.height = `${cellWidth * 2}px`;
+
+        // Get the game container and position the effect absolutely
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.position = 'relative';
+            spawnEffect.style.position = 'absolute';
+            gameContainer.appendChild(spawnEffect);
+
+            // Remove after animation completes
+            setTimeout(() => {
+                if (spawnEffect.parentNode) {
+                    spawnEffect.parentNode.removeChild(spawnEffect);
+                }
+            }, 1000);
+        }
+    }
+
+    /**
+     * Create explosion effect at grid position
+     */
+    function createExplosion(gridX, gridY, type = 'wall') {
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) return;
+
+        const canvasRect = canvas.getBoundingClientRect();
+        const cellWidth = canvasRect.width / tileCountX;
+        const cellHeight = canvasRect.height / tileCountY;
+
+        // Calculate position in pixels relative to canvas
+        const x = gridX * cellWidth + cellWidth / 2;
+        const y = gridY * cellHeight + cellHeight / 2;
+
+        // Create explosion element
+        const explosion = document.createElement('div');
+        explosion.className = `explosion-particle ${type}`;
+        explosion.style.left = `${x}px`;
+        explosion.style.top = `${y}px`;
+        explosion.style.width = `${cellWidth}px`;
+        explosion.style.height = `${cellHeight}px`;
+
+        // Get the game container and position the explosion absolutely
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.position = 'relative';
+            explosion.style.position = 'absolute';
+            gameContainer.appendChild(explosion);
+
+            // Remove after animation completes
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.parentNode.removeChild(explosion);
+                }
+            }, 600);
+        }
+    }
+
+    /**
      * Start the timer for Time Mode
      */
     function startTimer() {
@@ -744,25 +827,31 @@ const Game = (function() {
 
         // Check wall collision
         if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
-            handleGameOver();
+            // Create explosion at wall hit position
+            const hitX = Math.max(0, Math.min(head.x, tileCountX - 1));
+            const hitY = Math.max(0, Math.min(head.y, tileCountY - 1));
+            createExplosion(hitX, hitY, 'wall');
+            handleGameOver('wall');
             return;
         }
 
         // Check self collision
         if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-            handleGameOver();
+            handleGameOver('self');
             return;
         }
 
         // Check obstacle collision
         if (obstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
-            handleGameOver();
+            createExplosion(head.x, head.y, 'wall');
+            handleGameOver('obstacle');
             return;
         }
 
         // Check moving obstacle collision
         if (movingObstacles.some(obs => obs.x === head.x && obs.y === head.y)) {
-            handleGameOver();
+            createExplosion(head.x, head.y, 'wall');
+            handleGameOver('obstacle');
             return;
         }
 
@@ -817,6 +906,15 @@ const Game = (function() {
             if (clockPowerUp && head.x === clockPowerUp.x && head.y === clockPowerUp.y) {
                 timeRemaining += CLOCK_BONUS;
                 clockPowerUp = null;
+
+                // Add clock collection visual effect
+                const gameScreen = document.getElementById('gameScreen');
+                if (gameScreen) {
+                    gameScreen.classList.remove('clock-collect');
+                    void gameScreen.offsetWidth;
+                    gameScreen.classList.add('clock-collect');
+                }
+
                 AudioSystem.playGoldenFruit(); // Reuse golden fruit sound
                 if (onScoreUpdate) onScoreUpdate(score);
                 updateTimerDisplay();
@@ -835,6 +933,10 @@ const Game = (function() {
                 if (poisonIndex !== -1) {
                     poisons.splice(poisonIndex, 1);
                 }
+
+                // Create localized bomb explosion at the bomb's position
+                createExplosion(head.x, head.y, 'bomb');
+
                 AudioSystem.playBomb(); // Use bomb explosion sound
                 if (onScoreUpdate) onScoreUpdate(score);
                 return;
@@ -861,7 +963,12 @@ const Game = (function() {
             // Check golden fruit collision
             if (goldenFruit && head.x === goldenFruit.x && head.y === goldenFruit.y) {
                 score += 50;
+                const goldenPos = { ...goldenFruit }; // Save position for effect
                 goldenFruit = null;
+
+                // Create explosion effect at golden fruit position
+                createExplosion(goldenPos.x, goldenPos.y, 'golden');
+
                 AudioSystem.playGoldenFruit();
 
                 if (onScoreUpdate) onScoreUpdate(score);
@@ -924,9 +1031,26 @@ const Game = (function() {
     /**
      * Handle game over
      */
-    function handleGameOver() {
+    function handleGameOver(collisionType = 'wall') {
         gameOver = true;
         clearInterval(goldenFruitTimer);
+
+        // Add visual effect based on collision type
+        const gameScreen = document.getElementById('gameScreen');
+        if (gameScreen) {
+            // Remove all effect classes first
+            gameScreen.classList.remove('screen-shake', 'snake-collision');
+            void gameScreen.offsetWidth; // Trigger reflow
+
+            if (collisionType === 'self') {
+                // For self collision, apply effect to canvas only
+                gameScreen.classList.add('snake-collision');
+            } else {
+                // For wall/obstacle collision, shake the screen
+                gameScreen.classList.add('screen-shake');
+            }
+        }
+
         AudioSystem.stopBGM();
         AudioSystem.playGameOver();
 

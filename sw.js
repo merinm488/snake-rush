@@ -3,7 +3,7 @@
  * Provides offline functionality and caching
  */
 
-const CACHE_NAME = 'snake-rush-v10';
+const CACHE_NAME = 'snake-rush-v11';
 const urlsToCache = [
   '/',
   '/index.html',

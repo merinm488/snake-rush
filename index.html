@@ -225,10 +225,10 @@
                             <option value="time">⏱️ Time Mode</option>
                         </select>
                     </div>
-                    <div class="setting-group">
-                        <button id="levelsBtn" class="btn btn-secondary levels-settings-btn" disabled>
+                    <div class="setting-group" id="settingGroupLevels">
+                        <button id="levelsBtn" class="btn btn-secondary levels-settings-btn">
                             <span class="btn-icon">🎮</span>
-                            SELECT LEVEL
+                            Select Level
                         </button>
                     </div>
                     <div class="setting-group">
@@ -246,7 +246,7 @@
                             <option value="dark">Dark</option>
                         </select>
                     </div>
-                    <div class="setting-group">
+                    <div class="setting-group" id="settingGroupFruit">
                         <label for="fruitSelect">
                             <span class="setting-label">Fruit Type</span>
                             <span class="setting-icon" id="fruitTypeIcon">🍎</span>
@@ -285,35 +285,6 @@
                         <label class="setting-toggle">
                             <span class="setting-label">🎵 BGM</span>
                             <input type="checkbox" id="bgmSoundToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <input type="range" id="bgmVolume" class="volume-slider" min="0" max="100" value="30">
-                    </div>
-                    <div class="setting-group">
-                        <label class="setting-toggle">
-                            <span class="setting-label">🍎 Eat Sound</span>
-                            <input type="checkbox" id="eatSoundToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-group">
-                        <label class="setting-toggle">
-                            <span class="setting-label">💀 Game Over Sound</span>
-                            <input type="checkbox" id="gameOverSoundToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-group">
-                        <label class="setting-toggle">
-                            <span class="setting-label">🔘 Button Sounds</span>
-                            <input type="checkbox" id="buttonSoundToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-group">
-                        <label class="setting-toggle">
-                            <span class="setting-label">⭐ Bonus Sounds</span>
-                            <input type="checkbox" id="bonusSoundToggle" checked>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
