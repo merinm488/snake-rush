@@ -7,6 +7,7 @@ body.theme-classic {
     --text-secondary: #4a7a6a;
     --accent: #2a8a6a;
     --border: #98d8b8;
+    --grid: #7ac89e;
     --shadow: rgba(42, 138, 106, 0.2);
     --snake-head: #2a9a7a;
     --snake-body: #3aaa8a;
@@ -22,6 +23,7 @@ body.theme-neon {
     --text-secondary: #6a5a8a;
     --accent: #9955dd;
     --border: #c8b8e8;
+    --grid: #a89ad8;
     --shadow: rgba(153, 85, 221, 0.25);
     --snake-head: #9955dd;
     --snake-body: #aa66ee;
@@ -51,6 +53,7 @@ body.theme-ocean {
     --text-secondary: #4a7a9a;
     --accent: #3a8acc;
     --border: #a8d8f0;
+    --grid: #88c8e0;
     --shadow: rgba(58, 138, 204, 0.2);
     --snake-head: #3a99dd;
     --snake-body: #4aa9ee;
@@ -66,6 +69,7 @@ body.theme-forest {
     --text-secondary: #4a7a4a;
     --accent: #4a9a5a;
     --border: #a8e0b8;
+    --grid: #88d0a0;
     --shadow: rgba(74, 154, 90, 0.2);
     --snake-head: #4aaa6a;
     --snake-body: #5aba7a;
@@ -81,6 +85,7 @@ body.theme-berry {
     --text-secondary: #8a5a7a;
     --accent: #cc5599;
     --border: #f0b8d8;
+    --grid: #d898c0;
     --shadow: rgba(204, 85, 153, 0.25);
     --snake-head: #cc5599;
     --snake-body: #dd66aa;
@@ -96,6 +101,7 @@ body.theme-sunset {
     --text-secondary: #8a6a5a;
     --accent: #dd7755;
     --border: #f0d0b8;
+    --grid: #d8b0a0;
     --shadow: rgba(221, 119, 85, 0.25);
     --snake-head: #dd7755;
     --snake-body: #ee8866;
@@ -111,6 +117,7 @@ body.theme-light {
     --text-secondary: #7a7a7a;
     --accent: #77bb77;
     --border: #e0e0d8;
+    --grid: #c0c0b8;
     --shadow: rgba(0, 0, 0, 0.08);
     --snake-head: #77bb77;
     --snake-body: #88cc88;
@@ -130,6 +137,7 @@ body.theme-dark {
     --text-secondary: #aaaaaa;
     --accent: #ffffff;
     --border: #4a4a4a;
+    --grid: #5a5a5a;
     --shadow: rgba(255, 255, 255, 0.15);
     --snake-head: #ffffff;
     --snake-body: #cccccc;
@@ -170,6 +178,7 @@ body {
     --text-secondary: #4a7a6a;
     --accent: #2a8a6a;
     --border: #98d8b8;
+    --grid: #7ac89e;
     --shadow: rgba(42, 138, 106, 0.2);
     --snake-head: #2a9a7a;
     --snake-body: #3aaa8a;

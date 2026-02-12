@@ -55,48 +55,77 @@ const Renderer = (function() {
             snakeBody: computedStyle.getPropertyValue('--snake-body').trim(),
             snakePattern: computedStyle.getPropertyValue('--snake-pattern').trim(),
             gameBg: computedStyle.getPropertyValue('--game-bg').trim(),
-            border: computedStyle.getPropertyValue('--border').trim()
+            border: computedStyle.getPropertyValue('--border').trim(),
+            grid: computedStyle.getPropertyValue('--grid').trim() || computedStyle.getPropertyValue('--border').trim(),
+            accent: computedStyle.getPropertyValue('--accent').trim()
         };
     }
 
     /**
      * Resize canvas based on viewport
+     * Ensures only fully visible rows/columns are shown (no partial cells)
      */
     function resizeCanvas() {
         const container = document.querySelector('.game-container');
         if (!container) return;
 
         const isMobile = window.innerWidth <= 768;
+        const boundaryLineWidth = 4; // Match the boundary line thickness
 
         if (isMobile) {
             // Mobile: Use rectangular canvas to extend to bottom
-            const maxWidth = Math.min(window.innerWidth - 16, 600);
+            const maxWidth = Math.min(window.innerWidth - 16 - boundaryLineWidth, 600);
 
             // Calculate grid size first (keep cells square based on width)
-            gridSize = Math.floor(maxWidth / tileCountX);
+            gridSize = Math.floor(maxWidth / tileCountX) || 20; // Fallback to 20 if 0
 
-            // Calculate available height (account for header and minimal padding)
+            // Set canvas width to exact multiple of gridSize (no partial columns)
+            canvas.width = gridSize * tileCountX;
+
+            // Calculate available height (account for header, padding, and boundary)
             const header = document.querySelector('.game-header');
             const headerHeight = header ? header.offsetHeight : 60;
-            const availableHeight = window.innerHeight - headerHeight - 10;
+            const availableHeight = window.innerHeight - headerHeight - 10 - boundaryLineWidth;
 
             // Calculate how many complete rows fit
             tileCountY = Math.floor(availableHeight / gridSize);
 
-            // Set canvas to exact multiple of gridSize (no partial rows)
-            canvas.width = maxWidth;
+            // Set canvas height to exact multiple of gridSize (no partial rows)
             canvas.height = tileCountY * gridSize;
         } else {
-            // Desktop: Keep original square canvas behavior
-            const maxWidth = Math.min(window.innerWidth - 32, 600);
-            const maxHeight = window.innerHeight - 200;
-            const size = Math.min(maxWidth, maxHeight);
+            // Desktop: Larger game area with same cell size
+            // Use more cells (30x30 instead of 20x20)
+            const desktopTileCount = 30;
+            const maxWidth = window.innerWidth - 32 - boundaryLineWidth;
+            const maxHeight = window.innerHeight - 200 - boundaryLineWidth;
 
-            canvas.width = size;
-            canvas.height = size;
+            // Aim for ~25-30px cell size
+            const targetCellSize = 28;
+            const availableWidth = Math.min(maxWidth, 900); // Increased from 600
 
-            gridSize = Math.floor(size / tileCountX);
+            // Calculate grid size based on available width and target cell count
+            gridSize = Math.floor(availableWidth / desktopTileCount);
+
+            // Ensure grid size is reasonable (at least 20px, at most 35px)
+            gridSize = Math.max(20, Math.min(35, gridSize));
+
+            // Calculate tile count from actual grid size
+            tileCountX = Math.floor(availableWidth / gridSize);
+            tileCountX = Math.min(tileCountX, desktopTileCount); // Cap at 30
+
+            // Set canvas dimensions
+            canvas.width = gridSize * tileCountX;
+            canvas.height = gridSize * tileCountX;
             tileCountY = tileCountX; // Square grid on desktop
+
+            // Ensure minimum canvas size
+            if (canvas.width < 300 || canvas.height < 300) {
+                canvas.width = 300;
+                canvas.height = 300;
+                gridSize = 10;
+                tileCountX = 30;
+                tileCountY = 30;
+            }
         }
     }
 
@@ -107,17 +136,20 @@ const Renderer = (function() {
         ctx.fillStyle = colors.gameBg || '#1a3050';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw dark boundary line around the game board
-        ctx.strokeStyle = '#000000';
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 3;
+        // Draw bold boundary line around the game board (thicker than grid)
+        // Use accent color (same as score numbers)
+        // Draw at edge so all grid cells are fully playable
+        const boundaryColor = colors.accent || '#2a8a6a';
+        ctx.strokeStyle = boundaryColor;
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 4;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1;
 
         // Draw visible grid pattern
-        const gridColor = colors.border || '#4a5a6a';
+        const gridColor = colors.grid || colors.border || '#4a5a6a';
         ctx.strokeStyle = gridColor;
-        ctx.globalAlpha = 0.3;
+        ctx.globalAlpha = 0.5;
         ctx.lineWidth = 1;
 
         // Vertical lines (columns)
@@ -333,8 +365,8 @@ const Renderer = (function() {
         const centerY = y + gridSize / 2;
         const headSize = gridSize;
 
-        // Get current direction
-        const direction = InputSystem.getCurrentDirection();
+        // Get current direction (with safety check)
+        const direction = InputSystem.getCurrentDirection() || { x: 1, y: 0 };
 
         // Draw head shape (slightly larger than body, oval/serpentine)
         ctx.fillStyle = colors.snakeHead || '#5ed4a3';
@@ -487,31 +519,34 @@ const Renderer = (function() {
         const centerX = x + gridSize / 2;
         const centerY = y + gridSize / 2;
 
-        // Animated glow
-        const glowSize = 10 + Math.sin(Date.now() / 200) * 5;
-        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, gridSize / 2 + glowSize);
-        gradient.addColorStop(0, 'rgba(255, 215, 0, 0.9)');
-        gradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.4)');
-        gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, gridSize / 2 + glowSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw star instead of apple for golden fruit
-        ctx.font = `${gridSize * 0.9}px Arial`;
+        // Dark outline for visibility - this helps star stand out on all backgrounds
+        // No glow, outline, or animation - just the star itself
+        ctx.font = `bold ${gridSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#FFD700';
         ctx.fillText('⭐', centerX, centerY);
 
-        // Draw sparkle effects
+        // Two small, static sparkles to indicate it's special
+        const sparkleSize = 1.5;
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Draw star again with shadow (for glow effect)
+        ctx.fillText('⭐', centerX, centerY);
+
+        // Reset shadow
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 1;  // Reset for sparkles
+
+        // Just 2 small, sharp sparkles around the star
         ctx.fillStyle = '#FFD700';
-        for (let i = 0; i < 4; i++) {
-            const angle = (Date.now() / 500 + i * Math.PI / 2) % (Math.PI * 2);
-            const sparkleX = centerX + Math.cos(angle) * gridSize / 1.5;
-            const sparkleY = centerY + Math.sin(angle) * gridSize / 1.5;
-            const sparkleSize = 2 + Math.sin(Date.now() / 100 + i) * 1;
+        for (let i = 0; i < 2; i++) {
+            const angle = (Date.now() / 800 + i * Math.PI) % (Math.PI * 2);
+            const sparkleX = centerX + Math.cos(angle) * gridSize / 1.8;
+            const sparkleY = centerY + Math.sin(angle) * gridSize / 1.8;
+            const sparkleSize = 1.2 + Math.sin(Date.now() / 200 + i) * 0.3;
 
             ctx.beginPath();
             ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
@@ -561,6 +596,41 @@ const Renderer = (function() {
     }
 
     /**
+     * Draw poison items (Time Mode)
+     */
+    function drawPoisons(poisons) {
+        poisons.forEach(poison => {
+            const x = poison.x * gridSize + gridSize / 2;
+            const y = poison.y * gridSize + gridSize / 2;
+
+            // Draw bomb emoji
+            ctx.font = `bold ${gridSize * 0.8}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💣', x, y);
+        });
+    }
+
+    /**
+     * Draw clock power-up (Time Mode)
+     */
+    function drawClock(clock) {
+        const x = clock.x * gridSize + gridSize / 2;
+        const y = clock.y * gridSize + gridSize / 2;
+
+        // Draw clock emoji with glow
+        ctx.font = `bold ${gridSize * 0.9}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Glow effect
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15;
+        ctx.fillText('⏰', x, y);
+        ctx.shadowBlur = 0;
+    }
+
+    /**
      * Render a complete frame
      */
     function render(gameState) {
@@ -575,13 +645,30 @@ const Renderer = (function() {
             drawMovingObstacles(gameState.movingObstacles);
         }
 
-        // Draw golden fruit
-        if (gameState.goldenFruit) {
+        // Draw golden fruit (not in Time Mode)
+        if (gameState.goldenFruit && gameState.gameMode !== 'time') {
             drawGoldenFruit(gameState.goldenFruit);
         }
 
-        // Draw regular food
-        drawFood(gameState.food, gameState.fruitType);
+        // Draw multiple fruits (Time Mode only)
+        if (gameState.gameMode === 'time' && gameState.foods) {
+            gameState.foods.forEach(food => {
+                drawFood(food, food.type);
+            });
+        } else if (gameState.gameMode !== 'time') {
+            // Draw regular food
+            drawFood(gameState.food, gameState.fruitType);
+        }
+
+        // Draw poisons (Time Mode only)
+        if (gameState.gameMode === 'time' && gameState.poisons) {
+            drawPoisons(gameState.poisons);
+        }
+
+        // Draw clock power-up (Time Mode only)
+        if (gameState.gameMode === 'time' && gameState.clockPowerUp) {
+            drawClock(gameState.clockPowerUp);
+        }
 
         // Draw snake
         drawSnake(gameState.snake, gameState.food);

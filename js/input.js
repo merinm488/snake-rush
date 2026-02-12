@@ -50,6 +50,15 @@ const InputSystem = (function() {
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();
 
+        // Developer debug mode toggle (Shift+D)
+        if (key === 'd' && e.shiftKey) {
+            if (window.toggleDebugMode) {
+                window.toggleDebugMode();
+                e.preventDefault();
+            }
+            return;
+        }
+
         // Arrow keys and WASD
         let handled = false;
         switch(key) {

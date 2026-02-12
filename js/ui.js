@@ -67,6 +67,9 @@ const UISystem = (function() {
         currentLevel: document.getElementById('currentLevel'),
         targetDisplay: document.querySelector('.target-display'),
         targetScore: document.getElementById('targetScore'),
+        timerDisplay: document.getElementById('timerDisplay'),
+        currentTime: document.getElementById('currentTime'),
+        clockBonus: document.getElementById('clockBonus'),
         finalScore: document.getElementById('finalScore'),
         bestScore: document.getElementById('bestScore'),
         levelTarget: document.getElementById('levelTarget'),
@@ -142,8 +145,10 @@ const UISystem = (function() {
      * Show main menu with animation
      */
     function showMainMenu() {
+        console.log('showMainMenu: Adding active class to mainMenu');
         screens.mainMenu.classList.add('active');
         screens.mainMenu.classList.add('menu-visible');
+        console.log('showMainMenu: Menu classes after update:', screens.mainMenu.className);
     }
 
     /**
@@ -151,12 +156,21 @@ const UISystem = (function() {
      */
     function updateGameHeaderForMode(mode) {
         const gameMode = mode || selectedMode;
+
+        // Hide all special displays first
+        displays.levelDisplay.classList.add('hidden');
+        displays.targetDisplay.classList.add('hidden');
+        displays.timerDisplay.classList.add('hidden');
+
         if (gameMode === 'endless') {
-            displays.levelDisplay.classList.add('hidden');
-            displays.targetDisplay.classList.add('hidden');
-        } else {
+            // No special displays needed
+        } else if (gameMode === 'levels') {
+            // Show level and target
             displays.levelDisplay.classList.remove('hidden');
             displays.targetDisplay.classList.remove('hidden');
+        } else if (gameMode === 'time') {
+            // Show timer
+            displays.timerDisplay.classList.remove('hidden');
         }
     }
 
@@ -164,7 +178,7 @@ const UISystem = (function() {
      * Update levels button state based on game mode
      */
     function updateLevelsButtonState() {
-        buttons.levels.disabled = (selectedMode === 'endless');
+        buttons.levels.disabled = (selectedMode === 'endless' || selectedMode === 'time');
     }
 
     /**
@@ -473,6 +487,17 @@ const UISystem = (function() {
         updateGameHeaderForMode(mode);
         showScreen('gameScreen');
 
+        // Set timer update callback for Time Mode
+        const timerCallback = mode === 'time' ? (time) => {
+            displays.currentTime.textContent = time;
+            // Add warning style when time is low
+            if (time <= 10) {
+                displays.timerDisplay.classList.add('warning');
+            } else {
+                displays.timerDisplay.classList.remove('warning');
+            }
+        } : null;
+
         Game.start(
             levelNum,
             // Game over callback
@@ -538,7 +563,8 @@ const UISystem = (function() {
                 showModal('levelComplete');
             },
             mode,
-            accumulatedScore // Pass the accumulated score to the game
+            accumulatedScore, // Pass the accumulated score to game
+            timerCallback // Pass timer update callback for Time Mode
         );
 
         // Set up first input callback to start movement

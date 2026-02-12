@@ -321,6 +321,7 @@ body:not(:has(#mainMenu.active)) .menu-content-full .snake-emoji-large {
 /* Game Screen */
 .game-header {
     display: flex;
+    flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
     width: 100%;
@@ -362,7 +363,7 @@ body:not(:has(#mainMenu.active)) .menu-content-full .snake-emoji-large {
 #gameCanvas {
     display: block;
     background: var(--game-bg);
-    border-radius: var(--border-radius);
+    border-radius: 0;
     box-shadow: 0 8px 32px var(--shadow);
     max-width: 600px;
     width: 100%;
@@ -633,21 +634,41 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
         padding: 1.5rem;
     }
 
+    .game-header {
+        padding: 0.4rem 0.5rem;
+        gap: 0.4rem;
+    }
+
     .game-info {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 0.5rem;
-        align-items: center;
+        gap: 0.6rem;
     }
 
     .game-info .score-display,
-    .game-info .level-display {
-        font-size: 0.75rem;
+    .game-info .level-display,
+    .game-info .target-display,
+    .game-info .timer-display {
+        font-size: 0.8rem;
         white-space: nowrap;
     }
 
-    .game-header {
-        padding: 0.25rem 0.5rem;
+    .timer-large {
+        font-size: 1.5rem !important;
+    }
+
+    .fruit-legend {
+        padding: 0.4rem 0.6rem;
+        gap: 0.4rem 0.6rem;
+        margin-top: 0.3rem;
+    }
+
+    .legend-title {
+        font-size: 0.75rem;
+        width: 100%;
+    }
+
+    .legend-item {
+        font-size: 1rem;
+        padding: 0.2rem 0.4rem;
     }
 
     .game-container {
@@ -663,26 +684,25 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
     }
 
     .game-header {
-        padding: 0.25rem 0.5rem;
-        align-items: flex-start;
+        padding: 0.3rem 0.5rem;
+        gap: 0.3rem;
     }
 
     .game-info {
-        flex-direction: row;
-        gap: 0.5rem;
-        align-items: center;
+        gap: 0.4rem;
         font-size: 0.7rem;
     }
 
     .game-info .score-display,
     .game-info .level-display,
-    .game-info .target-display {
-        font-size: 0.7rem;
+    .game-info .target-display,
+    .game-info .timer-display {
+        font-size: 0.75rem;
         white-space: nowrap;
     }
 
     .game-info .score-value {
-        font-size: 0.85rem;
+        font-size: 1rem;
     }
 
     .header-buttons {
@@ -701,7 +721,11 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
     }
 
     .target-display .score-value {
-        font-size: 0.85rem;
+        font-size: 1rem;
+    }
+
+    .level-display .score-value {
+        font-size: 1rem;
     }
 
     .score-display, .high-score-display {
@@ -710,6 +734,31 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 
     .score-value {
         font-size: 0.85rem;
+    }
+
+    /* Fruit legend on small phones */
+    .fruit-legend {
+        padding: 0.4rem;
+        gap: 0.3rem 0.5rem;
+        max-width: 100%;
+    }
+
+    .legend-item {
+        flex: 0 1 auto; /* Allow items to shrink and wrap */
+        min-width: fit-content;
+    }
+
+    .legend-title {
+        display: none; /* Hide title on very small screens */
+    }
+
+    .legend-item {
+        font-size: 0.9rem;
+        padding: 0.2rem 0.35rem;
+    }
+
+    .legend-value {
+        font-size: 0.8rem;
     }
 
     /* Move game area up */
@@ -853,22 +902,55 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 /* ====================
    GAME HEADER UPDATES
    ==================== */
-.game-info {
+.game-header {
     display: flex;
-    flex-direction: row;
-    gap: 1.5rem;
-    align-items: baseline;
-    flex-wrap: nowrap;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
 }
 
-.game-info .score-display,
+.header-row-main {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.header-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.header-buttons .btn-icon-only {
+    position: static;
+    transform: none;
+    margin-top: 0;
+}
+
+.game-info {
+    display: none; /* Hidden, using new layout */
+}
+
+/* New header layout */
+.score-display,
 .level-display,
 .target-display,
-.streak-display {
+.streak-display,
+.timer-display {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.25rem;
     font-size: 1rem;
+}
+
+.score-display,
+.level-display,
+.target-display {
+    font-size: 0.95rem;
 }
 
 .game-info .score-label {
@@ -876,14 +958,14 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 }
 
 .game-info .score-value {
-    font-weight: 700;
+    font-weight: 400;
     color: var(--accent);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .level-display .score-value,
 .streak-display .score-value {
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .target-display {
@@ -895,7 +977,7 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 }
 
 .target-display .score-value {
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .streak-display:not(.hidden) {
@@ -919,6 +1001,129 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 @keyframes streakPulse {
     0% { transform: scale(1.2); }
     100% { transform: scale(1); }
+}
+
+/* Timer Display */
+.timer-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    position: relative;
+    min-width: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.timer-icon {
+    font-size: 2.2rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    position: relative;
+    text-shadow: 0 2px 8px var(--shadow);
+}
+
+.timer-display.warning .timer-value {
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.6);
+}
+
+.timer-display.warning .timer-icon {
+    animation: timerPulse 0.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px rgba(255, 0, 0, 1)) drop-shadow(0 0 30px rgba(255, 0, 0, 0.8));
+}
+
+@keyframes timerPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 15px rgba(255, 0, 0, 1)) drop-shadow(0 0 30px rgba(255, 0, 0, 0.8));
+    }
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 25px rgba(255, 0, 0, 1)) drop-shadow(0 0 50px rgba(255, 0, 0, 1));
+    }
+}
+
+.clock-bonus {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #FFD700;
+    color: #000;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+    animation: clockPop 0.3s ease-out;
+    z-index: 10;
+}
+
+@keyframes clockPop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Fruit Legend - Time Mode (for How To Play) */
+.fruit-points-list {
+    background: var(--bg-secondary);
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    margin-top: 0.8rem;
+    list-style-position: inside;
+}
+
+.fruit-points-list li {
+    margin: 0.4rem 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.fruit-points-list .legend-value {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.fruit-points-list .legend-danger {
+    color: #ff4444;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.4rem;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+}
+
+.legend-value {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.8rem;
+}
+
+.legend-danger {
+    border-color: #ff6b6b;
+}
+
+.legend-danger .legend-value {
+    color: #d32f2f;
+}
+
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
 }
 
 /* ====================
@@ -1101,6 +1306,35 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
     50% { box-shadow: 0 4px 25px var(--accent), 0 0 20px var(--shadow); }
 }
 
+/* Developer Tools Section */
+.sound-title {
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+#debugModeBtn {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 2px solid #ff6b6b;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+    color: #d32f2f;
+    transition: all 0.2s ease;
+}
+
+#debugModeBtn:hover {
+    background: linear-gradient(135deg, #ffe0e0 0%, #ffd0b0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+#debugModeBtn:active {
+    transform: translateY(0);
+}
+
 /* Prevent pull-to-refresh on mobile */
 body {
     overscroll-behavior: none;
@@ -1108,5 +1342,5 @@ body {
 }
 
 #gameCanvas {
-    touch-action: none;
+    touch-action: pan-x pan-y;
 }

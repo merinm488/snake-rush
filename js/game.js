@@ -27,7 +27,17 @@ const Game = (function() {
     let levelCompleted = false;
     let gameOver = false;
     let gameOverTimer = null;
-    let gameMode = 'levels'; // 'endless' or 'levels'
+    let gameMode = 'levels'; // 'endless', 'levels', or 'time'
+
+    // Time Mode specific state
+    let timeRemaining = 60; // Starting time in seconds
+    let timerInterval = null;
+    let foods = []; // Multiple fruits for Time Mode
+    let poisons = []; // Poison items (bombs)
+    let clockPowerUp = null; // Clock power-up
+
+    // Developer debug mode - for testing features during development
+    let debugMode = false;
 
     // Game settings
     let settings = {
@@ -43,48 +53,88 @@ const Game = (function() {
         hard: 170
     };
 
+    // Fruit point values for Time Mode
+    const FRUIT_POINTS = {
+        strawberry: 50,
+        cherry: 40,
+        apple: 30,
+        grape: 20,
+        orange: 10
+    };
+
+    // Fruit lifespan in milliseconds (longer for low value, shorter for high value)
+    const FRUIT_LIFESPAN = {
+        strawberry: 7000,  // 7 seconds - rare fruit disappears quickly
+        cherry: 8000,        // 8 seconds
+        apple: 10000,        // 10 seconds
+        grape: 10000,        // 10 seconds
+        orange: 10000         // 10 seconds - common fruit stays longer
+    };
+
+    // Poison penalty
+    const POISON_PENALTY = -60;
+
+    // Clock power-up bonus time
+    const CLOCK_BONUS = 15;
+
     let tileCountX = 20;
     let tileCountY = 20;
 
     // Level definitions
     const LEVELS = {
         1: { obstacles: [], movingObstacles: [], targetScore: 100 },
-        2: { obstacles: [{ x: 5, y: 5 }, { x: 14, y: 14 }, { x: 10, y: 10 }], movingObstacles: [], targetScore: 100 },
+        2: {
+            obstacles: [
+                { x: 6, y: 6 }, { x: 23, y: 6 },
+                { x: 4, y: 14 }, { x: 25, y: 14 },
+                { x: 9, y: 22 }, { x: 20, y: 22 },
+                { x: 14, y: 28 }
+            ],
+            movingObstacles: [],
+            targetScore: 100
+        },
         3: {
             obstacles: [
-                { x: 3, y: 3 }, { x: 16, y: 3 },
-                { x: 3, y: 16 }, { x: 16, y: 16 },
-                { x: 9, y: 9 }, { x: 10, y: 10 }
+                { x: 5, y: 4 }, { x: 24, y: 4 },
+                { x: 7, y: 10 }, { x: 22, y: 10 },
+                { x: 4, y: 17 }, { x: 25, y: 17 },
+                { x: 10, y: 23 }, { x: 19, y: 23 },
+                { x: 14, y: 29 }, { x: 15, y: 29 },
+                { x: 8, y: 13 }, { x: 21, y: 13 }
             ],
             movingObstacles: [],
             targetScore: 100
         },
         4: {
             obstacles: [
-                { x: 2, y: 5 }, { x: 17, y: 5 },
-                { x: 2, y: 14 }, { x: 17, y: 14 },
-                { x: 7, y: 10 }, { x: 12, y: 10 },
-                { x: 9, y: 7 }, { x: 10, y: 13 }
+                { x: 3, y: 5 }, { x: 26, y: 5 },
+                { x: 3, y: 15 }, { x: 26, y: 15 },
+                { x: 3, y: 25 }, { x: 26, y: 25 },
+                { x: 10, y: 10 }, { x: 19, y: 10 },
+                { x: 10, y: 20 }, { x: 19, y: 20 },
+                { x: 14, y: 7 }, { x: 15, y: 28 }
             ],
             movingObstacles: [
-                { x: 5, y: 10, dx: 1, dy: 0, minX: 5, maxX: 14 },
-                { x: 14, y: 10, dx: -1, dy: 0, minX: 5, maxX: 14 }
+                { x: 7, y: 12, dx: 1, dy: 0, minX: 7, maxX: 22 },
+                { x: 22, y: 20, dx: -1, dy: 0, minX: 7, maxX: 22 }
             ],
             targetScore: 100
         },
         5: {
             obstacles: [
-                { x: 1, y: 5 }, { x: 18, y: 5 },
-                { x: 1, y: 14 }, { x: 18, y: 14 },
-                { x: 5, y: 1 }, { x: 14, y: 1 },
-                { x: 5, y: 18 }, { x: 14, y: 18 },
-                { x: 9, y: 9 }, { x: 10, y: 10 },
-                { x: 9, y: 10 }, { x: 10, y: 9 }
+                { x: 2, y: 3 }, { x: 27, y: 3 },
+                { x: 2, y: 12 }, { x: 27, y: 12 },
+                { x: 2, y: 21 }, { x: 27, y: 21 },
+                { x: 2, y: 30 }, { x: 27, y: 30 },
+                { x: 7, y: 6 }, { x: 22, y: 6 },
+                { x: 7, y: 18 }, { x: 22, y: 18 },
+                { x: 14, y: 13 }, { x: 15, y: 13 },
+                { x: 14, y: 24 }, { x: 15, y: 24 }
             ],
             movingObstacles: [
-                { x: 5, y: 10, dx: 1, dy: 0, minX: 5, maxX: 14 },
-                { x: 14, y: 10, dx: -1, dy: 0, minX: 5, maxX: 14 },
-                { x: 10, y: 5, dx: 0, dy: 1, minY: 5, maxY: 14 }
+                { x: 7, y: 9, dx: 1, dy: 0, minX: 7, maxX: 22 },
+                { x: 22, y: 15, dx: -1, dy: 0, minX: 7, maxX: 22 },
+                { x: 14, y: 5, dx: 0, dy: 1, minY: 5, maxY: 25 }
             ],
             targetScore: 100
         }
@@ -95,6 +145,7 @@ const Game = (function() {
     let onScoreUpdate = null;
     let onLevelUpdate = null;
     let onLevelComplete = null;
+    let onTimerUpdate = null;
 
     /**
      * Initialize the game
@@ -104,6 +155,10 @@ const Game = (function() {
         loadLevelProgress();
         highScore = parseInt(localStorage.getItem('snakeRushHighScore')) || 0;
         updateHighScoreDisplay();
+
+        // Set up debug mode toggle for input system
+        window.toggleDebugMode = toggleDebugMode;
+        updateDebugIndicator();
     }
 
     /**
@@ -225,11 +280,33 @@ const Game = (function() {
         // Reset input direction
         InputSystem.reset();
 
-        // Place initial food
-        placeFood();
+        // Clear Time Mode specific arrays
+        foods = [];
+        poisons = [];
+        clockPowerUp = null;
 
-        // Start golden fruit spawner
-        startGoldenFruitSpawner();
+        // Reset timer to 60s for Time Mode
+        if (gameMode === 'time') {
+            timeRemaining = 60;
+            // Immediately update the display to show 60s
+            if (onTimerUpdate) {
+                onTimerUpdate(timeRemaining);
+            }
+        }
+
+        if (gameMode === 'time') {
+            // Time Mode: Multiple fruits, poisons, clocks, no golden fruit
+            spawnMultipleFoods(5); // Start with 5 fruits
+            startPoisonSpawner();
+            startClockSpawner();
+            startTimer();
+            // Set default food (for renderer compatibility)
+            food = { x: -1, y: -1 };
+        } else {
+            // Endless/Levels Mode: Single food, golden fruit
+            placeFood();
+            startGoldenFruitSpawner();
+        }
 
         // Calculate cumulative target score for levels mode
         const cumulativeTarget = gameMode === 'levels' ? (level * levelData.targetScore) : levelData.targetScore;
@@ -242,23 +319,35 @@ const Game = (function() {
 
     /**
      * Start golden fruit spawner
+     * In debug mode: spawns every 2 seconds (for testing)
+     * Normal mode: 5% chance every 3 seconds
      */
     function startGoldenFruitSpawner() {
         if (goldenFruitTimer) clearInterval(goldenFruitTimer);
 
+        const interval = debugMode ? 2000 : 3000; // Faster in debug mode
+
         goldenFruitTimer = setInterval(() => {
-            if (!isRunning || isPaused || waitingToStart || goldenFruit) return;
+            if (!isRunning || isPaused || waitingToStart || waitingToResume || goldenFruit) return;
 
-            // 5% chance to spawn golden fruit
-            if (Math.random() < 0.05) {
+            if (debugMode) {
+                // Debug mode: always spawn
                 placeGoldenFruit();
-
-                // Remove after 5 seconds
+                // Remove after 8 seconds (longer for testing)
                 setTimeout(() => {
                     goldenFruit = null;
-                }, 5000);
+                }, 8000);
+            } else {
+                // Normal: 5% chance to spawn
+                if (Math.random() < 0.05) {
+                    placeGoldenFruit();
+                    // Remove after 5 seconds
+                    setTimeout(() => {
+                        goldenFruit = null;
+                    }, 5000);
+                }
             }
-        }, 3000);
+        }, interval);
     }
 
     /**
@@ -313,37 +402,285 @@ const Game = (function() {
         // Check moving obstacles
         if (movingObstacles.some(obs => obs.x === x && obs.y === y)) return true;
 
+        // Check existing foods (for Time Mode multiple fruits)
+        if (foods.some(f => f.x === x && f.y === y)) return true;
+
+        // Check poisons (for Time Mode)
+        if (poisons.some(p => p.x === x && p.y === y)) return true;
+
+        // Check clock power-up (for Time Mode)
+        if (clockPowerUp && clockPowerUp.x === x && clockPowerUp.y === y) return true;
+
         return false;
+    }
+
+    /**
+     * Spawn multiple fruits for Time Mode
+     * Uses weighted random: lower value fruits more common, high value rarer
+     */
+    function spawnMultipleFoods(count) {
+        // Weighted fruit types - add more entries for more common fruits
+        const weightedFruitTypes = [
+            'orange', 'orange', 'orange', 'orange',  // 10 pts - most common
+            'grape', 'grape', 'grape', 'grape',        // 20 pts - same as orange
+            'apple', 'apple', 'apple', 'apple',        // 30 pts - same as orange/grape
+            'cherry', 'cherry',                         // 40 pts - half frequency of common ones
+            'strawberry'                                 // 50 pts - rarest (quarter frequency)
+        ];
+        foods = [];
+
+        for (let i = 0; i < count; i++) {
+            const type = weightedFruitTypes[Math.floor(Math.random() * weightedFruitTypes.length)];
+            let validPosition = false;
+            let attempts = 0;
+            let newFood = null;
+
+            while (!validPosition && attempts < 100) {
+                newFood = {
+                    x: Math.floor(Math.random() * tileCountX),
+                    y: Math.floor(Math.random() * tileCountY),
+                    type: type,
+                    points: FRUIT_POINTS[type],
+                    spawnTime: Date.now(),
+                    lifespan: FRUIT_LIFESPAN[type]
+                };
+
+                // Check if this position is occupied by any existing food
+                const occupied = foods.some(f => f.x === newFood.x && f.y === newFood.y);
+                validPosition = !occupied;
+                attempts++;
+            }
+
+            if (validPosition) {
+                foods.push(newFood);
+            }
+        }
+    }
+
+    /**
+     * Replenish fruits in Time Mode (maintain count)
+     */
+    function replenishFoods() {
+        const targetCount = 5;
+        if (foods.length < targetCount) {
+            const needed = targetCount - foods.length;
+            // Weighted fruit types - add more entries for more common fruits
+            const weightedFruitTypes = [
+                'orange', 'orange', 'orange', 'orange',  // 10 pts - most common
+                'grape', 'grape', 'grape', 'grape',        // 20 pts - same as orange
+                'apple', 'apple', 'apple', 'apple',        // 30 pts - same as orange/grape
+                'cherry', 'cherry',                         // 40 pts - half frequency of common ones
+                'strawberry'                                 // 50 pts - rarest (quarter frequency)
+            ];
+            for (let i = 0; i < needed; i++) {
+                const type = weightedFruitTypes[Math.floor(Math.random() * weightedFruitTypes.length)];
+                let validPosition = false;
+                let attempts = 0;
+                let newFood = null;
+
+                while (!validPosition && attempts < 100) {
+                    newFood = {
+                        x: Math.floor(Math.random() * tileCountX),
+                        y: Math.floor(Math.random() * tileCountY),
+                        type: type,
+                        points: FRUIT_POINTS[type],
+                        spawnTime: Date.now(),
+                        lifespan: FRUIT_LIFESPAN[type]
+                    };
+
+                    validPosition = !isPositionOccupied(newFood.x, newFood.y);
+                    attempts++;
+                }
+
+                if (validPosition) {
+                    foods.push(newFood);
+                }
+            }
+        }
+    }
+
+    /**
+     * Start poison spawner for Time Mode
+     * Spawns bombs at random intervals
+     */
+    function startPoisonSpawner() {
+        if (goldenFruitTimer) {
+            // Reuse the timer variable for Time Mode spawning
+            clearInterval(goldenFruitTimer);
+        }
+
+        const interval = debugMode ? 3000 : 5000; // Spawn poison every 5 seconds (3s in debug)
+
+        goldenFruitTimer = setInterval(() => {
+            if (!isRunning || isPaused || waitingToStart || waitingToResume) return;
+
+            // Spawn 2-3 poisons with different lifespans so they disappear at different times
+            const poisonCount = Math.floor(Math.random() * 2) + 2; // 2 or 3 poisons
+            const lifespans = [6000, 8000, 10000]; // Different lifespans in milliseconds
+
+            for (let i = 0; i < poisonCount; i++) {
+                const lifespan = lifespans[i % lifespans.length];
+                placePoison(lifespan);
+            }
+        }, interval);
+    }
+
+    /**
+     * Place a poison item at random position with specified lifespan
+     */
+    function placePoison(lifespan = 8000) {
+        let validPosition = false;
+        let attempts = 0;
+        let poison = null;
+
+        while (!validPosition && attempts < 100) {
+            poison = {
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * tileCountY),
+                spawnTime: Date.now(),
+                lifespan: lifespan
+            };
+
+            validPosition = !isPositionOccupied(poison.x, poison.y);
+            attempts++;
+        }
+
+        if (validPosition) {
+            poisons.push(poison);
+        }
+    }
+
+    /**
+     * Start clock power-up spawner for Time Mode
+     */
+    function startClockSpawner() {
+        const interval = debugMode ? 5000 : 10000; // Spawn clock every 10 seconds (5s in debug)
+
+        if (!window.clockSpawnerInterval) {
+            window.clockSpawnerInterval = setInterval(() => {
+                if (!isRunning || isPaused || waitingToStart || waitingToResume || clockPowerUp) return;
+
+                if (debugMode || Math.random() < 0.25) { // 25% chance
+                    placeClock();
+                    // Remove clock after 6 seconds
+                    setTimeout(() => {
+                        clockPowerUp = null;
+                    }, 6000);
+                }
+            }, interval);
+        }
+    }
+
+    /**
+     * Place a clock power-up at random position
+     */
+    function placeClock() {
+        let validPosition = false;
+        let attempts = 0;
+        let clock = null;
+
+        while (!validPosition && attempts < 100) {
+            clock = {
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * tileCountY)
+            };
+
+            validPosition = !isPositionOccupied(clock.x, clock.y);
+            attempts++;
+        }
+
+        if (validPosition) {
+            clockPowerUp = clock;
+        }
+    }
+
+    /**
+     * Start the timer for Time Mode
+     */
+    function startTimer() {
+        stopTimer(); // Clear any existing timer
+        timeRemaining = 60; // Reset to 60 seconds
+
+        timerInterval = setInterval(() => {
+            if (!isPaused && !waitingToStart && !waitingToResume && isRunning) {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    handleTimeUp();
+                }
+            }
+        }, 1000);
+    }
+
+    /**
+     * Stop the timer
+     */
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    /**
+     * Update timer display (called from UI)
+     */
+    function updateTimerDisplay() {
+        // This will be called from UI system
+        if (onTimerUpdate && gameMode === 'time') {
+            onTimerUpdate(timeRemaining);
+        }
+    }
+
+    /**
+     * Handle time's up event
+     */
+    function handleTimeUp() {
+        stopTimer();
+        gameOver = true;
+        isRunning = false;
+        clearInterval(goldenFruitTimer);
+        AudioSystem.stopBGM();
+        AudioSystem.playGameOver();
+
+        // Check for high score
+        const isNewHighScore = score > highScore;
+        if (isNewHighScore) {
+            highScore = score;
+            localStorage.setItem('snakeRushHighScore', highScore);
+            updateHighScoreDisplay();
+            AudioSystem.playHighScore();
+        }
+
+        if (onGameOver) {
+            onGameOver(score, highScore, isNewHighScore, false, 1, 0, 0);
+        }
     }
 
     /**
      * Start the game
      */
-    function start(levelNum = 1, gameOverCallback, scoreCallback, levelCallback, levelCompleteCallback, mode = 'levels', startingScoreParam = 0) {
+    function start(levelNum = 1, gameOverCallback, scoreCallback, levelCallback, levelCompleteCallback, mode = 'levels', startingScoreParam = 0, timerCallback = null) {
         onGameOver = gameOverCallback;
         onScoreUpdate = scoreCallback;
         onLevelUpdate = levelCallback;
         onLevelComplete = levelCompleteCallback;
+        onTimerUpdate = timerCallback;
         gameMode = mode;
 
         initGame(levelNum, startingScoreParam);
         isRunning = true;
 
-        InputSystem.init();
+        InputSystem.init(() => {
+            Game.startMoving();
+        });
 
         AudioSystem.init();
         AudioSystem.startBGM();
 
         lastUpdateTime = performance.now();
         gameLoopId = requestAnimationFrame(gameLoop);
-    }
-
-    /**
-     * Actually start moving (called after user input)
-     */
-    function startMoving() {
-        waitingToStart = false;
-        waitingToResume = false;
     }
 
     /**
@@ -431,38 +768,129 @@ const Game = (function() {
 
         snake.unshift(head);
 
-        // Check golden fruit collision
-        if (goldenFruit && head.x === goldenFruit.x && head.y === goldenFruit.y) {
-            score += 50;
-            goldenFruit = null;
-            AudioSystem.playGoldenFruit();
+        // Remove expired fruits in Time Mode
+        if (gameMode === 'time') {
+            const now = Date.now();
+            const initialCount = foods.length;
+            foods = foods.filter(f => now - f.spawnTime < f.lifespan);
+            // Spawn replacement fruits if any expired
+            if (foods.length < initialCount) {
+                const needed = 5 - foods.length;
+                if (needed > 0) {
+                    // Use weighted spawning to replace expired fruits
+                    const weightedFruitTypes = [
+                        'orange', 'orange', 'orange', 'orange',
+                        'grape', 'grape', 'grape', 'grape',
+                        'apple', 'apple', 'apple', 'apple',
+                        'cherry', 'cherry',
+                        'strawberry'
+                    ];
+                    for (let i = 0; i < needed; i++) {
+                        const type = weightedFruitTypes[Math.floor(Math.random() * weightedFruitTypes.length)];
+                        let validPosition = false;
+                        let attempts = 0;
+                        let newFood = null;
 
-            if (onScoreUpdate) onScoreUpdate(score);
-            placeFood();
-            return;
+                        while (!validPosition && attempts < 100) {
+                            newFood = {
+                                x: Math.floor(Math.random() * tileCountX),
+                                y: Math.floor(Math.random() * tileCountY),
+                                type: type,
+                                points: FRUIT_POINTS[type],
+                                spawnTime: Date.now(),
+                                lifespan: FRUIT_LIFESPAN[type]
+                            };
+                            validPosition = !isPositionOccupied(newFood.x, newFood.y);
+                            attempts++;
+                        }
+                        if (validPosition) {
+                            foods.push(newFood);
+                        }
+                    }
+                }
+            }
         }
 
-        // Check regular food collision
-        if (head.x === food.x && head.y === food.y) {
-            score += 10;
-
-            if (onScoreUpdate) onScoreUpdate(score);
-
-            AudioSystem.playEat();
-            Renderer.triggerEatAnimation();
-
-            // Check level completion (only in levels mode)
-            const levelData = LEVELS[level] || LEVELS[1];
-            const cumulativeTarget = level * levelData.targetScore;
-            if (gameMode === 'levels' && score >= cumulativeTarget && !levelCompleted) {
-                levelCompleted = true;
-                handleLevelComplete();
+        if (gameMode === 'time') {
+            // Time Mode: Handle multiple fruits, poisons, clocks
+            // Check clock power-up collision
+            if (clockPowerUp && head.x === clockPowerUp.x && head.y === clockPowerUp.y) {
+                timeRemaining += CLOCK_BONUS;
+                clockPowerUp = null;
+                AudioSystem.playGoldenFruit(); // Reuse golden fruit sound
+                if (onScoreUpdate) onScoreUpdate(score);
+                updateTimerDisplay();
                 return;
             }
 
-            placeFood();
-        } else {
+            // Remove expired poisons
+            const now = Date.now();
+            poisons = poisons.filter(p => now - p.spawnTime < p.lifespan);
+
+            // Check poison collision
+            if (poisons.some((p, index) => p.x === head.x && p.y === head.y)) {
+                score += POISON_PENALTY; // -60 points
+                // Remove the poison
+                const poisonIndex = poisons.findIndex(p => p.x === head.x && p.y === head.y);
+                if (poisonIndex !== -1) {
+                    poisons.splice(poisonIndex, 1);
+                }
+                AudioSystem.playBomb(); // Use bomb explosion sound
+                if (onScoreUpdate) onScoreUpdate(score);
+                return;
+            }
+
+            // Check fruit collisions
+            const eatenFruitIndex = foods.findIndex(f => f.x === head.x && f.y === head.y);
+            if (eatenFruitIndex !== -1) {
+                const eatenFruit = foods[eatenFruitIndex];
+                score += eatenFruit.points;
+                foods.splice(eatenFruitIndex, 1);
+                AudioSystem.playEat();
+                Renderer.triggerEatAnimation();
+                if (onScoreUpdate) onScoreUpdate(score);
+
+                // Replenish fruits
+                replenishFoods();
+                return;
+            }
+
             snake.pop();
+        } else {
+            // Regular modes: Single food, golden fruit
+            // Check golden fruit collision
+            if (goldenFruit && head.x === goldenFruit.x && head.y === goldenFruit.y) {
+                score += 50;
+                goldenFruit = null;
+                AudioSystem.playGoldenFruit();
+
+                if (onScoreUpdate) onScoreUpdate(score);
+                placeFood();
+                return;
+            }
+
+            // Check regular food collision
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+
+                if (onScoreUpdate) onScoreUpdate(score);
+
+                AudioSystem.playEat();
+                Renderer.triggerEatAnimation();
+
+                // Check level completion (only in levels mode)
+                const levelData = LEVELS[level] || LEVELS[1];
+                const cumulativeTarget = level * levelData.targetScore;
+                if (gameMode === 'levels' && score >= cumulativeTarget && !levelCompleted) {
+                    levelCompleted = true;
+                    handleLevelComplete();
+                    return;
+                }
+
+                placeFood();
+            } else {
+                snake.pop();
+            }
         }
     }
 
@@ -545,7 +973,11 @@ const Game = (function() {
             movingObstacles,
             paused: isPaused,
             waitingToStart,
-            waitingToResume
+            waitingToResume,
+            gameMode,
+            foods,
+            poisons,
+            clockPowerUp
         });
     }
 
@@ -588,6 +1020,11 @@ const Game = (function() {
         gameOver = false;
         cancelAnimationFrame(gameLoopId);
         clearInterval(goldenFruitTimer);
+        stopTimer(); // Stop Time Mode timer
+        if (window.clockSpawnerInterval) {
+            clearInterval(window.clockSpawnerInterval);
+            window.clockSpawnerInterval = null;
+        }
         if (gameOverTimer) {
             clearTimeout(gameOverTimer);
             gameOverTimer = null;
@@ -632,6 +1069,77 @@ const Game = (function() {
         return waitingToStart;
     }
 
+    /**
+     * Toggle debug mode for development/testing
+     * Press Shift+D (desktop) or use Settings button (mobile)
+     */
+    function toggleDebugMode() {
+        debugMode = !debugMode;
+
+        // Update visual indicator
+        updateDebugIndicator();
+
+        // Log to console
+        if (debugMode) {
+            console.log('%c🐛 DEBUG MODE ENABLED', 'color: #ff6b6b; font-weight: bold; font-size: 14px;');
+            console.log('%c• Golden fruit spawns every 2 seconds', 'color: #4CAF50; font-size: 12px;');
+            console.log('%c• Stays visible for 8 seconds', 'color: #4CAF50; font-size: 12px;');
+            console.log('%c• Toggle: Shift+D or Settings > Developer Tools button', 'color: #2196F3; font-size: 12px;');
+        } else {
+            console.log('%c✅ Debug mode disabled', 'color: #4CAF50; font-weight: bold; font-size: 14px;');
+        }
+
+        // Restart golden fruit spawner with new settings
+        if (isRunning) {
+            startGoldenFruitSpawner();
+        }
+    }
+
+    /**
+     * Update debug mode visual indicator
+     */
+    function updateDebugIndicator() {
+        // Debug indicator disabled
+        return;
+
+        let indicator = document.getElementById('debugIndicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'debugIndicator';
+            const bg = debugMode ? '#ff6b6b' : '#4CAF50';
+            const text = debugMode ? '🐛 DEBUG ON' : '✅ DEBUG OFF';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: ${bg};
+                color: white;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-family: monospace;
+                font-size: 12px;
+                font-weight: bold;
+                z-index: 1000;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                pointer-events: none;
+                transition: all 0.3s ease;
+            `;
+            indicator.textContent = text;
+            document.body.appendChild(indicator);
+        } else {
+            indicator.style.background = debugMode ? '#ff6b6b' : '#4CAF50';
+            indicator.textContent = debugMode ? '🐛 DEBUG ON' : '✅ DEBUG OFF';
+        }
+    }
+
+    /**
+     * Actually start moving (called after user input)
+     */
+    function startMoving() {
+        waitingToStart = false;
+        waitingToResume = false;
+    }
+
     return {
         init,
         start,
@@ -646,6 +1154,8 @@ const Game = (function() {
         isWaitingToStart,
         getUnlockedLevels,
         getLevelInfo,
+        toggleDebugMode,
+        setTimerUpdateCallback: (callback) => { onTimerUpdate = callback; },
         LEVELS
     };
 })();

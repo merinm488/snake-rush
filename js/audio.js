@@ -252,6 +252,20 @@ const AudioSystem = (function() {
     }
 
     /**
+     * Sound: Bomb explosion (short, harsh sound)
+     */
+    function playBomb() {
+        if (!isEnabled('gameOver')) return;
+        init();
+        const notes = [
+            { freq: 150, duration: 0.08, type: 'sawtooth', volume: 0.2 },
+            { freq: 100, duration: 0.1, type: 'sawtooth', volume: 0.15 },
+            { freq: 80, duration: 0.15, type: 'sawtooth', volume: 0.1 },
+        ];
+        playMelody(notes, 200);
+    }
+
+    /**
      * Sound: Button click (short blip)
      */
     function playClick() {
@@ -368,6 +382,7 @@ const AudioSystem = (function() {
         playPause,
         playResume,
         playGoldenFruit,
+        playBomb,
         playLevelComplete,
         startBGM,
         stopBGM
