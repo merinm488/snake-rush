@@ -252,7 +252,7 @@ const AudioSystem = (function() {
     }
 
     /**
-     * Sound: Bomb explosion (short, harsh sound)
+     * Sound: Tamarind explosion (short, harsh sound)
      */
     function playBomb() {
         if (!isEnabled('gameOver')) return;

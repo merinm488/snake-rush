@@ -603,11 +603,11 @@ const Renderer = (function() {
             const x = poison.x * gridSize + gridSize / 2;
             const y = poison.y * gridSize + gridSize / 2;
 
-            // Draw bomb emoji
+            // Draw tamarind emoji
             ctx.font = `bold ${gridSize * 0.8}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('💣', x, y);
+            ctx.fillText('🥜', x, y);
         });
     }
 

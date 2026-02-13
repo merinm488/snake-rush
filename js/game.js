@@ -33,7 +33,7 @@ const Game = (function() {
     let timeRemaining = 60; // Starting time in seconds
     let timerInterval = null;
     let foods = []; // Multiple fruits for Time Mode
-    let poisons = []; // Poison items (bombs)
+    let poisons = []; // Poison items (tamarind)
     let clockPowerUp = null; // Clock power-up
 
     // Developer debug mode - for testing features during development
@@ -506,7 +506,7 @@ const Game = (function() {
 
     /**
      * Start poison spawner for Time Mode
-     * Spawns bombs at random intervals
+     * Spawns tamarind at random intervals
      */
     function startPoisonSpawner() {
         if (goldenFruitTimer) {
@@ -752,6 +752,13 @@ const Game = (function() {
         onTimerUpdate = timerCallback;
         gameMode = mode;
 
+        // Force fruit type to apple in endless and level modes
+        if (mode !== 'time') {
+            settings.fruitType = 'apple';
+            saveSettings();
+            applySettings();
+        }
+
         initGame(levelNum, startingScoreParam);
         isRunning = true;
 
@@ -934,7 +941,7 @@ const Game = (function() {
                     poisons.splice(poisonIndex, 1);
                 }
 
-                // Create localized bomb explosion at the bomb's position
+                // Create localized tamarind explosion at the tamarind's position
                 createExplosion(head.x, head.y, 'bomb');
 
                 AudioSystem.playBomb(); // Use bomb explosion sound

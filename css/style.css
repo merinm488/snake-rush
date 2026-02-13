@@ -1336,7 +1336,7 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
     100% { filter: brightness(1) saturate(1); }
 }
 
-/* Explosion particle for bomb/collision */
+/* Explosion particle for tamarind/collision */
 .explosion-particle {
     position: absolute;
     pointer-events: none;
@@ -1359,7 +1359,7 @@ body.theme-dark .setting-toggle input:checked + .toggle-slider::before {
 }
 
 /* Different explosion colors */
-.explosion-particle.bomb {
+.explosion-particle.bomb { /* Tamarind explosion */
     background: radial-gradient(circle, rgba(255, 200, 0, 1) 0%, rgba(255, 100, 0, 0.8) 30%, rgba(255, 0, 0, 0.6) 60%, transparent 100%);
     box-shadow: 0 0 20px 10px rgba(255, 100, 0, 0.8), inset 0 0 20px rgba(255, 255, 0, 0.8);
 }

@@ -184,12 +184,8 @@ const UISystem = (function() {
             settingsControls.groupLevels.classList.add('hidden');
         }
 
-        // Fruit Type: Show for Endless and Levels, hide for Time mode
-        if (mode === 'time') {
-            settingsControls.groupFruit.classList.add('hidden');
-        } else {
-            settingsControls.groupFruit.classList.remove('hidden');
-        }
+        // Fruit Type: Always hide (fixed to apple in endless/levels modes, multiple fruits in time mode)
+        settingsControls.groupFruit.classList.add('hidden');
     }
 
     /**
